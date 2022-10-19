@@ -97,14 +97,12 @@ impl Shell {
                 "~>".magenta(),
                 input
             )?;
-            if !input.is_empty() {
-                if input.len() > idx {
-                    self.stdout.queue(MoveLeft((input.len() - idx) as u16))?;
-                }
+            if !input.is_empty() && input.len() > idx {
+                self.stdout.queue(MoveLeft((input.len() - idx) as u16))?;
             }
             self.stdout.flush()?;
-            match event::read()? {
-                Event::Key(key) => match key.code {
+            if let Event::Key(key) = event::read()? {
+                match key.code {
                     KeyCode::Char(chr) => {
                         if key.modifiers.contains(KeyModifiers::CONTROL) {
                             match chr {
@@ -146,8 +144,7 @@ impl Shell {
                         }
                     }
                     _ => {}
-                },
-                _ => {}
+                }
             }
         }
         write!(
@@ -179,7 +176,7 @@ fn main() {
     };
     sh.write("Welcome to EISH").unwrap();
     while let Ok(input) = sh.get_input() {
-        if sh.handle_input(input).unwrap() == true {
+        if sh.handle_input(input).unwrap() {
             break;
         }
     }
