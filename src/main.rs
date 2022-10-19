@@ -34,7 +34,7 @@ impl Shell {
                 if input.is_empty() {
                     return Ok(false);
                 }
-                if input.starts_with('#') {
+                if input.starts_with("//") {
                     return Ok(false);
                 }
                 let input: Vec<&str> = input.trim().split(' ').collect();
@@ -59,7 +59,11 @@ impl Shell {
                                     self.write("Unknown command")?;
                                 }
                                 _ => {
-                                    self.write(format!("Error running command: {:#?}", err))?;
+                                    self.write(
+                                        format!("Error running command: {:#?}", err)
+                                            .replace('\n', "\r\n")
+                                            .red(),
+                                    )?;
                                 }
                             },
                         }
