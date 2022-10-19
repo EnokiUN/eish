@@ -1,8 +1,8 @@
 use crossterm::{
-    cursor::MoveLeft,
+    cursor::{MoveLeft, MoveTo},
     event::{self, Event, KeyCode, KeyModifiers},
     style::Stylize,
-    terminal::{disable_raw_mode, enable_raw_mode},
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     QueueableCommand,
 };
 use std::{
@@ -114,6 +114,11 @@ impl Shell {
                                     idx = 0;
                                     // newline
                                     self.write("")?;
+                                }
+                                'l' => {
+                                    self.stdout
+                                        .queue(Clear(ClearType::All))?
+                                        .queue(MoveTo(0, 0))?;
                                 }
                                 _ => {}
                             }
