@@ -12,6 +12,7 @@ use std::{
     io::{stdout, ErrorKind, Stdout, Write},
     path::PathBuf,
     process::Command,
+    str::FromStr,
 };
 
 #[derive(Debug)]
@@ -41,7 +42,27 @@ impl Shell {
                 match input[0] {
                     "exit" => {
                         self.write("See you later, Bye!\r")?;
-                        return Ok(false);
+                    }
+                    "cd" => {
+                        if input.len() == 1 {
+                            self.write(&self.path.to_str().unwrap().to_string())?;
+                        } else if input.len() == 2 {
+                            match PathBuf::from_str(
+                                &input[1].replace('~', &env::var("HOME").unwrap()),
+                            ) {
+                                Ok(path) => {
+                                    env::set_current_dir(path.clone()).unwrap();
+                                    self.path = path;
+                                }
+                                Err(err) => {
+                                    self.write(
+                                        format!("Error running command: {:#?}", err)
+                                            .replace('\n', "\r\n")
+                                            .red(),
+                                    )?;
+                                }
+                            }
+                        }
                     }
                     _ => {
                         let mut cmd = Command::new(input[0]);
