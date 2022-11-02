@@ -52,7 +52,9 @@ impl Shell {
                             ) {
                                 Ok(path) => {
                                     env::set_current_dir(path.clone()).unwrap();
-                                    self.path = path;
+                                    self.path = env::current_dir().unwrap_or_else(|_| {
+                                        env::var("HOME").unwrap().parse().unwrap()
+                                    });
                                 }
                                 Err(err) => {
                                     self.write(
@@ -95,6 +97,7 @@ impl Shell {
             Input::Exit => Ok(true),
         }
     }
+
     pub fn get_input(&mut self) -> Result<Input, Box<dyn Error>> {
         let mut input = String::new();
         let mut idx = 0;
@@ -182,6 +185,7 @@ impl Shell {
         self.stdout.flush()?;
         Ok(Input::Command(input))
     }
+
     pub fn write(&mut self, input: impl Display) -> Result<(), Box<dyn Error>> {
         writeln!(self.stdout, "{}\r", input)?;
         self.stdout.flush()?;
