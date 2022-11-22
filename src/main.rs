@@ -26,6 +26,7 @@ pub enum Input {
 pub struct Shell {
     pub stdout: Stdout,
     pub path: PathBuf,
+    pub history: Vec<String>,
 }
 
 impl Shell {
@@ -102,6 +103,9 @@ impl Shell {
     pub fn get_input(&mut self) -> Result<Input, Box<dyn Error>> {
         let mut input = String::new();
         let mut idx = 0;
+        let input_idx = self.history.len();
+        let mut history_idx = input_idx;
+        self.history.push(String::new());
         write!(
             self.stdout,
             "\r\x1b[2K{}-{} {}\r\n\x1b[2K{} {}",
@@ -173,6 +177,23 @@ impl Shell {
                             idx += 1;
                         }
                     }
+                    KeyCode::Up => {
+                        if history_idx != 0 {
+                            if history_idx == input_idx {
+                                self.history[input_idx] = input.clone();
+                            }
+                            history_idx -= 1;
+                            input = self.history[history_idx].clone();
+                            idx = input.len();
+                        }
+                    }
+                    KeyCode::Down => {
+                        if history_idx < self.history.len() - 1 {
+                            history_idx += 1;
+                            input = self.history[history_idx].clone();
+                            idx = input.len();
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -184,6 +205,15 @@ impl Shell {
             input
         )?;
         self.stdout.flush()?;
+        if let Some(entry) = self.history.get(history_idx - 1) {
+            if entry != &input {
+                self.history[input_idx] = input.clone();
+            } else {
+                self.history.pop();
+            }
+        } else {
+            self.history[input_idx] = input.clone();
+        }
         Ok(Input::Command(input))
     }
 
@@ -207,6 +237,7 @@ fn main() {
     let mut sh = Shell {
         stdout: stdout(),
         path: env::current_dir().unwrap_or_else(|_| env::var("HOME").unwrap().parse().unwrap()),
+        history: Vec::new(),
     };
     sh.write("Welcome to EISH").unwrap();
     while let Ok(input) = sh.get_input() {
