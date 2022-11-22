@@ -5,6 +5,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     QueueableCommand,
 };
+use signal_hook::consts::SIGINT;
 use std::{
     env,
     error::Error,
@@ -199,6 +200,9 @@ fn main() {
         disable_raw_mode().unwrap();
         hook(p);
     }));
+    unsafe {
+        signal_hook::low_level::register(SIGINT, || {}).unwrap();
+    }
     enable_raw_mode().unwrap();
     let mut sh = Shell {
         stdout: stdout(),
