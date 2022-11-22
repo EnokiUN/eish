@@ -139,10 +139,14 @@ impl Shell {
                                     return Ok(Input::Exit);
                                 }
                                 'c' => {
-                                    input.drain(..);
                                     idx = 0;
-                                    // newline
-                                    self.write("")?;
+                                    write!(
+                                        self.stdout,
+                                        "\r\n\x1b[2F\x1b[2K{} {}\r\n\x1b[2K\n",
+                                        "~>".magenta(),
+                                        input
+                                    )?;
+                                    input.drain(..);
                                 }
                                 'l' => {
                                     self.stdout
