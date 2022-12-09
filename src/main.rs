@@ -209,7 +209,9 @@ impl Shell {
             input
         )?;
         self.stdout.flush()?;
-        if let Some(entry) = self.history.get(history_idx - 1) {
+        if history_idx == 0 {
+            self.history[input_idx] = input.clone();
+        } else if let Some(entry) = self.history.get(history_idx - 1) {
             if entry != &input {
                 self.history[input_idx] = input.clone();
             } else {
